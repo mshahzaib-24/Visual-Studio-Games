@@ -59,7 +59,7 @@ int day = 0;
 int bank = 5000;
 int ownedBuildCount = 0;
 const int maxbuild = 10;
-Building buildings[maxbuild] = { Building("Tiny House",5000),Building("Small House",10000),Building("Medium House",15000),Building("Big House",20000),Building("Large House",30000), Building("Tiny Apartment",15000), Building("Small Apartment",30000), Building("Medium Apartment",45000), Building("Large Apartment",60000), Building("Penthouse",100000)};
+Building buildings[maxbuild] = { Building("Tiny House",5000),Building("Small House",10000),Building("Medium House",15000),Building("Big House",20000),Building("Large House",30000), Building("Tiny Apartment",15000), Building("Small Apartment",30000), Building("Medium Apartment",45000), Building("Large Apartment",60000), Building("Penthouse",100000) };
 Building ownedBuildings[maxbuild];
 
 int main() {
@@ -70,8 +70,8 @@ int main() {
 void startMenu() {
 	int option;
 	while (true) {
-		if (bank < 0) {
-			cout << "YOU HAVE GONE BANKRUPT!\nClosing game..." << endl;
+		if ((bank <= 0 && totalRent()==0) || (bank<=0 && ownedBuildCount==0)) {
+			cout << "\nYOU HAVE GONE BANKRUPT!\nClosing game..." << endl;
 			break;
 		}
 		cout << "-----DETAILS-----" << endl;
@@ -80,7 +80,7 @@ void startMenu() {
 		cout << "TOTAL RENT: $" << totalRent() << endl;
 		cout << "TOTAL LOAN: $" << totalLoan() << endl;
 		cout << "-----START MENU-----" << endl;
-		cout << "(1) Progress Day\n(2) Buy\n(3) Sell\n(4) Rent\n(5) Loan" << endl;
+		cout << "(1) Progress Day\n(2) Buy\n(3) Sell\n(4) Rent\n(5) Loan\n(6) Exit Game" << endl;
 		cout << "Choose an option: ";
 		cin >> option;
 		switch (option) {
@@ -93,16 +93,27 @@ void startMenu() {
 			buy();
 			break;
 		case 3:
+			if (ownedBuildCount == 0) {
+				cout << "\nYou do not own any buildings.\n" << endl;
+				continue;
+			}
 			sell();
 			break;
 		case 4:
+			if (ownedBuildCount == 0) {
+				cout << "\nYou do not own any buildings.\n" << endl;
+				continue;
+			}
 			rent();
 			break;
 		case 5:
 			loan();
 			break;
+		case 6:
+			cout << "Closing game..." << endl;
+			return;
 		default:
-			cout << "Invalid response entered..." << endl;
+			cout << "\nInvalid response entered...\n" << endl;
 			break;
 
 		}
@@ -115,8 +126,8 @@ void marketplace() {
 			break;
 		cout << "-----(" << i << ")-----" << endl;
 		cout << "Name: " << buildings[i].getName() << endl;
-		cout <<	"Value: $" << buildings[i].getPrice() << endl;
-		cout << "Deposit: $" << buildings[i].getPrice()*0.2 << endl;
+		cout << "Value: $" << buildings[i].getPrice() << endl;
+		cout << "Deposit: $" << buildings[i].getPrice() * 0.2 << endl;
 	}
 }
 void buildlist() {
@@ -132,13 +143,23 @@ void buildlist() {
 }
 void buy() {
 	int choice;
+	int payable;
 	marketplace();
 	cout << "Choose a building: ";
 	cin >> choice;
+	if (choice >= maxbuild || choice < 0) {
+		cout << "\nNo buildings are listed with that number.\n" << endl;
+		return;
+	}
+	payable = buildings[choice].getPrice();
+	if (payable > bank) {
+		cout << "\nYou cannot afford this property.\n" << endl;
+		return;
+	}
 	bank -= buildings[choice].getPrice();
 	ownedBuildings[ownedBuildCount].setName(buildings[choice].getName());
-	ownedBuildings[ownedBuildCount].setPrice(buildings[choice].getPrice());
-	ownedBuildings[ownedBuildCount].setRent(buildings[choice].getPrice()*0.04);
+	ownedBuildings[ownedBuildCount].setPrice(buildings[choice].getPrice()*0.80);
+	ownedBuildings[ownedBuildCount].setRent(buildings[choice].getPrice() * 0.04);
 	ownedBuildCount++;
 }
 void sell() {
@@ -149,6 +170,7 @@ void sell() {
 	bank += ownedBuildings[choice].getPrice();
 	ownedBuildings[choice].setName(" ");
 	ownedBuildings[choice].setPrice(0);
+	ownedBuildCount--;
 	startMenu();
 }
 void rent() {
@@ -156,6 +178,10 @@ void rent() {
 	buildlist();
 	cout << "Choose a building: ";
 	cin >> choice;
+	if (ownedBuildings[choice].getRentStatus() == true) {
+		cout << "You cannot rent the property out again." << endl;
+		return;
+	}
 	ownedBuildings[choice].setRentStatus(true);
 }
 void loan() {
@@ -165,6 +191,15 @@ void loan() {
 	marketplace();
 	cout << "Choose a building: ";
 	cin >> choice;
+	if (choice >= maxbuild || choice < 0) {
+		cout << "\nNo buildings are listed with that number.\n" << endl;
+		return;
+	}
+	deposit = buildings[choice].getPrice() * 0.2;
+	if (deposit > bank) {
+		cout << "\nYou cannot afford this property.\n" << endl;
+		return;
+	}
 	payable = buildings[choice].getPrice() * 0.8;
 
 	cout << "-----DURATIONS-----" << endl;
@@ -175,7 +210,6 @@ void loan() {
 	cin >> duration;
 
 	loan = payable / duration;
-	deposit = buildings[choice].getPrice() * 0.2;
 
 	bank -= deposit;
 	ownedBuildings[ownedBuildCount].setName(buildings[choice].getName());
@@ -187,7 +221,7 @@ void loan() {
 int totalRent() {
 	int total = 0;
 	for (int i = 0; i < ownedBuildCount; i++) {
-		if(ownedBuildings[i].getRentStatus())
+		if (ownedBuildings[i].getRentStatus())
 			total += ownedBuildings[i].getRent();
 	}
 	return total;
