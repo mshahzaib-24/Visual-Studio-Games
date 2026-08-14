@@ -16,7 +16,7 @@ public:
 		this->price = price;
 		owned = false;
 		assigned = false;
-		earnings = price * 0.10;
+		earnings = price * 0.02;
 	}
 	string getName() {
 		return name;
@@ -45,19 +45,42 @@ public:
 };
 
 //global variables
-double bank = 1000.0;
+double bank = 2000.0;
 double total = 0.0;
-const double employeeSalary = 50.0;
+const double employeeSalary = 30.0;
 int unassignedEmployeeCount = 0;
 int assignedEmployeeCount = 0;
 int ownedCarsCount = 0;
-const int maxCars = 5;
-Car cars[maxCars]{ 
-Car("Toyota AE86", 800.0),
-Car("Suzuki Mehran", 2000.0),
-Car("Suzuki Alto", 4000.0),
-Car("Suzuki Wagon R", 7500.0),
-Car("Honda BRV", 14000.0)};
+const int maxCars = 27;
+Car cars[maxCars] = {
+	Car("Suzuki Mehran",1800),
+	Car("Suzuki Alto", 3160),
+	Car("Suzuki WagonR", 3850),
+	Car("Suzuki Cultus", 4340),
+	Car("Toyota Yaris", 4900),
+	Car("Suzuki Swift", 5000),
+	Car("Changan Alsvin", 5300),
+	Car("Honda City", 6000),
+	Car("Toyota Corolla", 6500),
+	Car("Honda BR-V", 6800),
+	Car("Honda Civic", 7200),
+	Car("Hyundai Elantra", 7500),
+	Car("Haval H6", 9500),
+	Car("Hyundai Tucson", 10000),
+	Car("Kia Sportage", 10100),
+	Car("Toyota Fortuner", 12500),
+	Car("Hyundai Santa Fe", 13000),
+	Car("Hyundai Sonata", 13400),
+	Car("Kia Sorento", 15150),
+	Car("Toyota Prado", 20000),
+	Car("Mercedes C63 AMG",24000),
+	Car("Mercedes E-Class", 28000),
+	Car("Audi A6", 30000),
+	Car("Toyota Land Cruiser", 32000),
+	Car("Range Rover", 36500),
+	Car("BMW iX",55000),
+	Car("Lamborghini Huracan", 150000)
+};
 
 void renderMenu();
 void handleMenuInput(char);
@@ -93,7 +116,7 @@ void displayOwnedCars() {
 
 int main() {
 	ULONGLONG lastTick = GetTickCount64();
-	const ULONGLONG interval_ms = 1000;
+	const ULONGLONG interval_ms = 5000; //5 seconds
 
 	cout << "Welcome to Taxi Runner!\n";
 	renderMenu();
@@ -198,7 +221,7 @@ void assignEmployee() {
 	}
 	cout << "\n---- Garage ----\n";
 	displayOwnedCars();
-	cout << "[" << ownedCarsCount << "] Return to main menu\n";
+	cout << "[" << maxCars << "] Return to main menu\n";
 	cout << "Enter: ";
 	int choice;
 	cin >> choice;
@@ -234,7 +257,7 @@ void unassignEmployee() {
 	}
 	cout << "\n---- Garage ----\n";
 	displayOwnedCars();
-	cout << "[" << ownedCarsCount << "] Return to main menu\n";
+	cout << "[" << maxCars << "] Return to main menu\n";
 	cout << "Enter: ";
 	int choice;
 	cin >> choice;
@@ -309,7 +332,28 @@ void buyCar() {
 	}
 }
 void sellCar() {
-
+	if (ownedCarsCount == 0) {
+		cout << "\nYou don't own any cars!\n";
+		return;
+	}
+	cout << "\n---- Garage ----\n";
+	displayOwnedCars();
+	cout << "[" << maxCars << "] Return to main menu\n";
+	cout << "Enter: ";
+	int choice;
+	cin >> choice;
+	if (cars[choice].getOwned() == true && cars[choice].getAssigned() == false) {
+		bank += cars[choice].getPrice();
+		cars[choice].setOwned(false);
+		ownedCarsCount--;
+		cout << "\nCar sold!\n";
+	}
+	else if (cars[choice].getAssigned() == true) {
+		cout << "\nYou must not have any employees assigned before selling.\n";
+	}
+	else {
+		cout << "\nUnhandled exception\n";
+	}
 }
 void displayStats() {
 	cout << "\n\n---- Status ----\n";
