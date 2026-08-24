@@ -128,7 +128,7 @@ wstring ToWide(const string& s);
 HWND MakeButton(HWND parent, const string& text, int x, int y, int w, int h, int id);
 HWND MakeLabel(HWND parent, const string& text, int x, int y, int w, int h, int id = 0);
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
 	const wchar_t className[] = L"TaxiRunnerWindow";
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WindowProc;
