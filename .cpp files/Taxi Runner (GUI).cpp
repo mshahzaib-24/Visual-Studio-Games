@@ -4,11 +4,14 @@
 #include<string>
 using namespace std;
 
-#define ID_MANAGE_CARS 1
-#define ID_MANAGE_EMPLOYEES 2
+//ids
+#define ID_PLAY 14
 #define ID_SAVE 3
 #define ID_LOAD 4
 #define ID_EXIT 5
+#define ID_MANAGE_CARS 1
+#define ID_MANAGE_EMPLOYEES 2
+#define ID_STATS 13
 #define ID_VIEW_GARAGE 6
 #define ID_VIEW_DEALERSHIP 7
 #define ID_HIRING 8
@@ -16,12 +19,12 @@ using namespace std;
 #define ID_BACK 10
 #define ID_BACK_CARS_MENU 11
 #define ID_BACK_EMPLOYEE_MENU 12
-#define ID_STATS 13
-
+#define ID_BACK_START_MENU 15
 #define ID_SALARY 98
 #define ID_BANK 99
 #define ID_CAR_START 100
 
+//classes
 class Car {
 	string name;
 	int price;
@@ -48,7 +51,19 @@ public:
 	void setAssigned(bool assigned) { this->assigned = assigned; }
 	void setSalary(int salary) { this->salary = salary; }
 };
+enum class Scene {
+	START_MENU,
+	MAIN_MENU,
+	EMPLOYEES,
+	HIRING,
+	FIRING,
+	CARS,
+	GARAGE,
+	DEALERSHIP,
+	STATISTICS
+};
 
+//global variables
 int employeeCount = 0;
 int ownedCars = 0;
 int grossIncome = 0;
@@ -84,25 +99,14 @@ Car cars[maxCars] = {
 	Car("BMW iX", 215000),
 	Car("Lamborghini Huracan", 300000)
 };
-
-enum class Scene {
-	MAIN_MENU,
-	EMPLOYEES,
-	HIRING,
-	FIRING,
-	CARS,
-	GARAGE,
-	DEALERSHIP,
-	STATISTICS
-};
-
 Scene currentScene = Scene::MAIN_MENU;
 HWND hMainWindow;
-
 HBRUSH currentBgBrush = NULL;
 COLORREF currentBgColor = RGB(240, 240, 240);
 
+//function declarations
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void ShowStartMenu(HWND hwnd);
 void ShowMainMenu(HWND hwnd);
 void ShowEmployeeMenu(HWND hwnd);
 void ShowCarMenu(HWND hwnd);
@@ -120,24 +124,9 @@ void HandleHiringClick(HWND hwnd, int carIndex);
 void HandleFiringClick(HWND hwnd, int carIndex);
 void SetSceneBackground(HWND hwnd, COLORREF color);
 int GetEmployeeHireCost(int currentEmployees);
-
-wstring ToWide(const string& s) {
-	return wstring(s.begin(), s.end());
-}
-HWND MakeButton(HWND parent, const string& text, int x, int y, int w, int h, int id) {
-	return CreateWindow(L"BUTTON", ToWide(text).c_str(), WS_VISIBLE | WS_CHILD, x, y, w, h, parent, (HMENU)(INT_PTR)id, NULL, NULL);
-}
-HWND MakeLabel(HWND parent, const string& text, int x, int y, int w, int h, int id = 0) {
-	return CreateWindow(L"STATIC", ToWide(text).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, x, y, w, h, parent, (HMENU)(INT_PTR)id, NULL, NULL);
-}
-
-int GetEmployeeHireCost(int currentEmployees) {
-	int cost = 50;
-	for (int i = 0; i < currentEmployees; i++) {
-		cost = (int)(cost * 1.15);
-	}
-	return cost;
-}
+wstring ToWide(const string& s);
+HWND MakeButton(HWND parent, const string& text, int x, int y, int w, int h, int id);
+HWND MakeLabel(HWND parent, const string& text, int x, int y, int w, int h, int id = 0);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	const wchar_t className[] = L"TaxiRunnerWindow";
@@ -161,11 +150,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	return 0;
 }
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
-		ShowMainMenu(hwnd);
+		ShowStartMenu(hwnd);
 		return 0;
 	}
 	case WM_TIMER: {
@@ -228,6 +216,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			ClearWindow(hwnd);
 			ShowStats(hwnd);
 		}
+		else if (buttonID == ID_PLAY) {
+			currentScene = Scene::MAIN_MENU;
+			ClearWindow(hwnd);
+			ShowMainMenu(hwnd);
+		}
 		else if (buttonID == ID_SAVE) {
 			saveGame(hwnd);
 		}
@@ -251,6 +244,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			currentScene = Scene::EMPLOYEES;
 			ClearWindow(hwnd);
 			ShowEmployeeMenu(hwnd);
+		}
+		else if (buttonID == ID_BACK_START_MENU) {
+			currentScene = Scene::START_MENU;
+			ClearWindow(hwnd);
+			ShowStartMenu(hwnd);
 		}
 		return 0;
 	}
@@ -285,6 +283,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+//display helper functions
+wstring ToWide(const string& s) {
+	return wstring(s.begin(), s.end());
+}
+HWND MakeButton(HWND parent, const string& text, int x, int y, int w, int h, int id) {
+	return CreateWindow(L"BUTTON", ToWide(text).c_str(), WS_VISIBLE | WS_CHILD, x, y, w, h, parent, (HMENU)(INT_PTR)id, NULL, NULL);
+}
+HWND MakeLabel(HWND parent, const string& text, int x, int y, int w, int h, int id) {
+	return CreateWindow(L"STATIC", ToWide(text).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, x, y, w, h, parent, (HMENU)(INT_PTR)id, NULL, NULL);
+}
+
+//logic helper functions
 void SetSceneBackground(HWND hwnd, COLORREF color) {
 	if (currentBgBrush != NULL) {
 		DeleteObject(currentBgBrush);
@@ -294,7 +304,6 @@ void SetSceneBackground(HWND hwnd, COLORREF color) {
 	currentBgBrush = CreateSolidBrush(color);
 	InvalidateRect(hwnd, NULL, TRUE);
 }
-
 void ClearWindow(HWND hwnd) {
 	HWND child;
 	while ((child = GetWindow(hwnd, GW_CHILD)) != NULL) {
@@ -303,7 +312,6 @@ void ClearWindow(HWND hwnd) {
 	InvalidateRect(hwnd, NULL, TRUE);
 	UpdateWindow(hwnd);
 }
-
 void ListCars(HWND hwnd, bool ownedOnly, bool markAssigned) {
 	int left = 0;
 	int right = 0;
@@ -344,7 +352,15 @@ void ListCars(HWND hwnd, bool ownedOnly, bool markAssigned) {
 		}
 	}
 }
+int GetEmployeeHireCost(int currentEmployees) {
+	int cost = 50;
+	for (int i = 0; i < currentEmployees; i++) {
+		cost = (int)(cost * 1.15);
+	}
+	return cost;
+}
 
+//handling clicks
 void HandleDealershipClick(HWND hwnd, int carIndex) {
 	if (cars[carIndex].getOwned() == true) {
 		MessageBox(hwnd, L"You already own this car.", L"Dealership", MB_OK);
@@ -419,15 +435,22 @@ void HandleFiringClick(HWND hwnd, int carIndex) {
 	}
 }
 
+//menu displays & functions
+void ShowStartMenu(HWND hwnd) {
+	SetSceneBackground(hwnd, RGB(235, 235, 235));
+	MakeLabel(hwnd, "Welcome to Taxi Runner!", 300, 40, 200, 20);
+	MakeButton(hwnd, "Play", 300, 140, 200, 50, ID_PLAY);
+	MakeButton(hwnd, "Save", 300, 200, 200, 50, ID_SAVE);
+	MakeButton(hwnd, "Load", 300, 260, 200, 50, ID_LOAD);
+	MakeButton(hwnd, "Exit", 300, 320, 200, 50, ID_EXIT);
+}
 void ShowMainMenu(HWND hwnd) {
 	SetSceneBackground(hwnd, RGB(235, 235, 235));
-	MakeLabel(hwnd, "Bank: $" + to_string(bank), 300, 20, 200, 20, ID_BANK);
-	MakeButton(hwnd, "Manage Cars", 300, 80, 200, 50, ID_MANAGE_CARS);
-	MakeButton(hwnd, "Manage Employees", 300, 140, 200, 50, ID_MANAGE_EMPLOYEES);
-	MakeButton(hwnd, "View Statistics", 300, 200, 200, 50, ID_STATS);
-	MakeButton(hwnd, "Save", 300, 260, 200, 50, ID_SAVE);
-	MakeButton(hwnd, "Load", 300, 320, 200, 50, ID_LOAD);
-	MakeButton(hwnd, "Exit", 300, 380, 200, 50, ID_EXIT);
+	MakeLabel(hwnd, "Bank: $" + to_string(bank), 300, 40, 200, 20, ID_BANK);
+	MakeButton(hwnd, "Manage Cars", 300, 140, 200, 50, ID_MANAGE_CARS);
+	MakeButton(hwnd, "Manage Employees", 300, 200, 200, 50, ID_MANAGE_EMPLOYEES);
+	MakeButton(hwnd, "View Statistics", 300, 260, 200, 50, ID_STATS);
+	MakeButton(hwnd, "Back", 300, 320, 200, 50, ID_BACK_START_MENU);
 }
 void ShowCarMenu(HWND hwnd) {
 	SetSceneBackground(hwnd, RGB(230, 240, 255));
@@ -441,7 +464,7 @@ void ShowEmployeeMenu(HWND hwnd) {
 	if (employeeCount < ownedCars) {
 		label += "\nNext hire: $" + to_string(GetEmployeeHireCost(employeeCount));
 	}
-	MakeLabel(hwnd, label, 300, 20, 230, 50, ID_SALARY);
+	MakeLabel(hwnd, label, 300, 40, 230, 50, ID_SALARY);
 	MakeButton(hwnd, "Hire Employee", 300, 140, 200, 50, ID_HIRING);
 	MakeButton(hwnd, "Fire Employee", 300, 200, 200, 50, ID_FIRING);
 	MakeButton(hwnd, "Back", 300, 260, 200, 50, ID_BACK);
@@ -485,7 +508,6 @@ void ShowStats(HWND hwnd) {
 	MakeLabel(hwnd, text, 250, 140, 300, 260, ID_STATS);
 	MakeButton(hwnd, "Back", 300, 380, 200, 50, ID_BACK);
 }
-
 void saveGame(HWND hwnd) {
 	ofstream write("savefile.txt");
 	if (write.is_open() == true) {
